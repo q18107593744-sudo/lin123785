@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>免费AI生图 - 输入文字，免费生成图片</title>
+<meta name="description" content="免费AI生图工具：输入一段文字描述，免费生成图片，无需注册，无需付费。">
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, "PingFang SC", "Microsoft YaHei", sans-serif; background: #f6f7fb; color: #1f2430; line-height: 1.6; }
+  header { background: linear-gradient(135deg, #6d5df6, #9b5cf6 55%, #d05cf6); color: #fff; padding: 40px 20px 56px; text-align: center; }
+  header h1 { font-size: 30px; letter-spacing: 1px; }
+  header p { opacity: .92; margin-top: 8px; font-size: 15px; }
+  .badges { margin-top: 14px; display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; }
+  .badges span { background: rgba(255,255,255,.18); border: 1px solid rgba(255,255,255,.35); border-radius: 999px; padding: 3px 12px; font-size: 12px; }
+  main { max-width: 880px; margin: -28px auto 0; padding: 0 16px 48px; }
+  .card { background: #fff; border-radius: 16px; box-shadow: 0 8px 30px rgba(31,36,48,.08); padding: 22px; margin-bottom: 20px; }
+  label { display: block; font-weight: 600; margin-bottom: 6px; font-size: 14px; }
+  textarea { width: 100%; min-height: 96px; border: 1.5px solid #dfe3ee; border-radius: 12px; padding: 12px 14px; font-size: 15px; resize: vertical; outline: none; font-family: inherit; }
+  textarea:focus { border-color: #7c6cf6; box-shadow: 0 0 0 3px rgba(124,108,246,.15); }
+  .row { display: flex; gap: 12px; flex-wrap: wrap; margin-top: 14px; }
+  .field { flex: 1; min-width: 140px; }
+  select, input[type=text] { width: 100%; border: 1.5px solid #dfe3ee; border-radius: 10px; padding: 9px 11px; font-size: 14px; outline: none; font-family: inherit; background: #fff; }
+  select:focus, input[type=text]:focus { border-color: #7c6cf6; }
+  .chips { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 8px; }
+  .chip { border: 1.5px solid #dfe3ee; background: #fff; border-radius: 999px; padding: 5px 13px; font-size: 13px; cursor: pointer; }
+  .chip.active { border-color: #7c6cf6; background: #efecff; color: #5b4de0; font-weight: 600; }
+  .gen-btn { width: 100%; margin-top: 18px; border: none; border-radius: 12px; padding: 14px; font-size: 17px; font-weight: 700; color: #fff; background: linear-gradient(135deg, #6d5df6, #c05cf6); cursor: pointer; }
+  .gen-btn:disabled { opacity: .55; cursor: wait; }
+  .status { margin-top: 12px; font-size: 14px; color: #5b6478; text-align: center; min-height: 22px; }
+  .status.error { color: #d33; }
+  .result { text-align: center; }
+  .result img { max-width: 100%; border-radius: 14px; box-shadow: 0 8px 26px rgba(31,36,48,.16); margin-top: 8px; }
+  .result-actions { display: flex; gap: 10px; justify-content: center; margin-top: 14px; flex-wrap: wrap; }
+  .btn { border: 1.5px solid #dfe3ee; background: #fff; border-radius: 10px; padding: 9px 18px; font-size: 14px; cursor: pointer; }
+  .btn.primary { background: #6d5df6; border-color: #6d5df6; color: #fff; font-weight: 600; }
+  .gallery { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 12px; }
+  .gallery figure { position: relative; border-radius: 12px; overflow: hidden; cursor: pointer; background: #eee; aspect-ratio: 1; }
+  .gallery img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .gallery figcaption { position: absolute; left: 0; right: 0; bottom: 0; background: linear-gradient(transparent, rgba(0,0,0,.65)); color: #fff; font-size: 11px; padding: 18px 8px 6px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .empty { color: #8a93a6; font-size: 14px; text-align: center; padding: 18px 0 8px; }
+  .hint { font-size: 13px; color: #8a93a6; margin-top: 10px; text-align: center; }
+  footer { text-align: center; color: #8a93a6; font-size: 12px; padding: 0 16px 32px; }
+  footer a { color: #7c6cf6; }
+  @media (max-width: 560px) { header h1 { font-size: 24px; } }
+</style>
+</head>
+<body>
+<header>
+  <h1>🎨 免费AI生图</h1>
+  <p>输入一段文字描述，免费生成图片。不用注册，不用付费。</p>
+  <div class="badges"><span>完全免费</span><span>无需注册</span><span>中文提示词也行</span><span>图片可下载</span></div>
+</header>
+<main>
+  <section class="card">
+    <label for="prompt">图片描述</label>
+    <textarea id="prompt" placeholder="例如：一只橘猫坐在洒满阳光的窗台上，旁边有一盆绿植，写实摄影风格"></textarea>
+    <div class="chips" id="styleChips"></div>
+    <div class="row">
+      <div class="field">
+        <label for="size">尺寸</label>
+        <select id="size">
+          <option value="768x768">正方形 768 × 768</option>
+          <option value="512x512">正方形 512 × 512</option>
+          <option value="768x512">横图 768 × 512</option>
+          <option value="512x768">竖图 512 × 768</option>
+          <option value="1024x576">宽屏 1024 × 576</option>
+        </select>
+      </div>
+      <div class="field">
+        <label for="seed">随机种子（留空=随机）</label>
+        <input type="text" id="seed" placeholder="例如 42，相同提示词+种子=同一张图">
+      </div>
+    </div>
+    <button class="gen-btn" id="genBtn">✨ 免费生成图片</button>
+    <div class="status" id="status"></div>
+    <div class="hint">免费接口每 45 秒限生成 1 张（按 IP 计），高峰期可能需要排队等待，稍等片刻即可。</div>
+  </section>
+
+  <section class="card result" id="resultCard" style="display:none">
+    <h2 style="font-size:17px;margin-bottom:4px">生成结果</h2>
+    <div id="resultWrap"></div>
+    <div class="result-actions">
+      <button class="btn primary" id="downloadBtn">⬇ 下载图片</button>
+      <button class="btn" id="againBtn">🎲 换一张（同提示词）</button>
+      <button class="btn" id="copyBtn">🔗 复制图片链接</button>
+    </div>
+  </section>
+
+  <section class="card">
+    <h2 style="font-size:17px;margin-bottom:10px">🖼 我的生成记录</h2>
+    <div class="gallery" id="gallery"></div>
+    <div class="empty" id="galleryEmpty">还没有生成记录，生成的图片会自动保存在这里（只保存在你的浏览器里）。</div>
+    <div style="text-align:center;margin-top:12px"><button class="btn" id="clearBtn">清空记录</button></div>
+  </section>
+
+  <section class="card">
+    <h2 style="font-size:17px;margin-bottom:8px">💡 使用小技巧</h2>
+    <ul style="padding-left:20px;font-size:14px;color:#4a5162">
+      <li>描述越具体，图越准：主体 + 场景 + 光线 + 风格，例如“黄昏海边，女孩牵着金毛散步，电影感”。</li>
+      <li>点风格小标签会自动加到描述后面，也可以自己写英文风格词，效果通常更好。</li>
+      <li>喜欢一张图就记下它的种子：同样的提示词 + 同样的种子 = 同一张图。</li>
+      <li>图片由免费 AI 接口生成，画质约 768px，适合做头像、壁纸、配图和灵感参考。</li>
+    </ul>
+  </section>
+</main>
+<footer>
+  免费生图由 Pollinations 免费接口提供支持 · 本站不保存你的图片，记录仅存在你自己的浏览器中<br>
+  <a href="https://pollinations.ai" target="_blank" rel="noopener">pollinations.ai</a>
+</footer>
+<script>
+(function () {
+  var STYLES = [
+    { name: "写实摄影", suffix: ", photorealistic, detailed, natural light" },
+    { name: "动漫", suffix: ", anime style, vibrant colors" },
+    { name: "水彩", suffix: ", watercolor painting, soft brushstrokes" },
+    { name: "油画", suffix: ", oil painting, classical art" },
+    { name: "赛博朋克", suffix: ", cyberpunk, neon lights, futuristic" },
+    { name: "电影感", suffix: ", cinematic, film still, dramatic lighting" },
+    { name: "扁平插画", suffix: ", flat illustration, minimal, clean" },
+    { name: "像素风", suffix: ", pixel art, retro game style" }
+  ];
+  var promptEl = document.getElementById("prompt");
+  var sizeEl = document.getElementById("size");
+  var seedEl = document.getElementById("seed");
+  var genBtn = document.getElementById("genBtn");
+  var statusEl = document.getElementById("status");
+  var resultCard = document.getElementById("resultCard");
+  var resultWrap = document.getElementById("resultWrap");
+  var galleryEl = document.getElementById("gallery");
+  var galleryEmpty = document.getElementById("galleryEmpty");
+  var chipsEl = document.getElementById("styleChips");
+  var current = null; // {url, prompt}
+  var retryTimer = null;
+
+  var activeStyle = null;
+  STYLES.forEach(function (s) {
+    var b = document.createElement("button");
+    b.type = "button";
+    b.className = "chip";
+    b.textContent = s.name;
+    b.onclick = function () {
+      if (activeStyle === s) {
+        activeStyle = null;
+        b.classList.remove("active");
+        promptEl.value = promptEl.value.replace(s.suffix, "");
+      } else {
+        if (activeStyle) {
+          promptEl.value = promptEl.value.replace(activeStyle.suffix, "");
+          chipsEl.querySelectorAll(".chip").forEach(function (c) { c.classList.remove("active"); });
+        }
+        activeStyle = s;
+        b.classList.add("active");
+        if (promptEl.value.trim()) promptEl.value += s.suffix;
+        else promptEl.value = "一张图片" + s.suffix;
+      }
+      promptEl.focus();
+    };
+    chipsEl.appendChild(b);
+  });
+
+  function loadHistory() {
+    try { return JSON.parse(localStorage.getItem("freeimg_history") || "[]"); }
+    catch (e) { return []; }
+  }
+  function saveHistory(list) {
+    try { localStorage.setItem("freeimg_history", JSON.stringify(list.slice(0, 30))); } catch (e) {}
+  }
+  function renderGallery() {
+    var list = loadHistory();
+    galleryEl.innerHTML = "";
+    galleryEmpty.style.display = list.length ? "none" : "block";
+    list.forEach(function (item) {
+      var fig = document.createElement("figure");
+      var img = document.createElement("img");
+      img.src = item.url;
+      img.alt = item.prompt;
+      img.loading = "lazy";
+      var cap = document.createElement("figcaption");
+      cap.textContent = item.prompt;
+      fig.appendChild(img);
+      fig.appendChild(cap);
+      fig.onclick = function () { showResult(item.url, item.prompt); window.scrollTo({ top: 0, behavior: "smooth" }); };
+      galleryEl.appendChild(fig);
+    });
+  }
+  function addHistory(url, prompt) {
+    var list = loadHistory().filter(function (x) { return x.url !== url; });
+    list.unshift({ url: url, prompt: prompt, time: Date.now() });
+    saveHistory(list);
+    renderGallery();
+  }
+  function buildUrl(prompt, seed) {
+    var parts = sizeEl.value.split("x");
+    var q = "?width=" + parts[0] + "&height=" + parts[1] + "&seed=" + seed + "&model=flux&nologo=true";
+    return "https://image.pollinations.ai/prompt/" + encodeURIComponent(prompt) + q;
+  }
+  function setStatus(msg, isError) {
+    statusEl.textContent = msg;
+    statusEl.className = "status" + (isError ? " error" : "");
+  }
+  function showResult(url, prompt) {
+    current = { url: url, prompt: prompt };
+    resultCard.style.display = "block";
+    resultWrap.innerHTML = "";
+    var img = document.createElement("img");
+    img.src = url;
+    img.alt = prompt;
+    resultWrap.appendChild(img);
+  }
+  function waitSeconds(n) {
+    return new Promise(function (res) { setTimeout(res, n * 1000); });
+  }
+  async function generate(prompt, seed) {
+    genBtn.disabled = true;
+    var url = buildUrl(prompt, seed);
+    var attempt = 0;
+    while (attempt < 6) {
+      attempt++;
+      setStatus(attempt > 1 ? ("服务繁忙，第 " + attempt + " 次重试中…") : "正在生成，请稍等…");
+      try {
+        var res = await fetch(url, { method: "GET" });
+        if (res.ok) {
+          showResult(url, prompt);
+          addHistory(url, prompt);
+          setStatus("生成成功！点击图片下方按钮可以下载。");
+          genBtn.disabled = false;
+          return;
+        }
+        var retryAfter = parseInt(res.headers.get("Retry-After") || "45", 10) || 45;
+        if (res.status === 402 || res.status === 429 || res.status === 503) {
+          var wait = Math.min(Math.max(retryAfter, 10), 60);
+          setStatus("免费接口限流/繁忙，" + wait + " 秒后自动重试（第 " + attempt + " 次）…", false);
+          await waitSeconds(wait);
+          continue;
+        }
+        throw new Error("HTTP " + res.status);
+      } catch (e) {
+        setStatus("网络有点问题，10 秒后自动重试（第 " + attempt + " 次）…", true);
+        await waitSeconds(10);
+      }
+    }
+    setStatus("接口暂时太忙了，请过一会儿再点一次生成。", true);
+    genBtn.disabled = false;
+  }
+  genBtn.onclick = function () {
+    var prompt = promptEl.value.trim();
+    if (!prompt) { setStatus("先写一句图片描述吧。", true); promptEl.focus(); return; }
+    if (retryTimer) { clearTimeout(retryTimer); retryTimer = null; }
+    var seed = seedEl.value.trim() || String(Math.floor(Math.random() * 1000000));
+    generate(prompt, seed);
+  };
+  document.getElementById("againBtn").onclick = function () {
+    if (!current) return;
+    var seed = String(Math.floor(Math.random() * 1000000));
+    seedEl.value = seed;
+    generate(current.prompt, seed);
+  };
+  document.getElementById("downloadBtn").onclick = function () {
+    if (!current) return;
+    var a = document.createElement("a");
+    a.href = current.url;
+    a.download = "free-image-" + Date.now() + ".jpg";
+    a.target = "_blank";
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+  };
+  document.getElementById("copyBtn").onclick = function () {
+    if (!current) return;
+    var done = function () { setStatus("图片链接已复制。"); };
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(current.url).then(done, function () { setStatus("复制失败，请长按图片手动复制链接。", true); });
+    } else {
+      var ta = document.createElement("textarea");
+      ta.value = current.url;
+      document.body.appendChild(ta);
+      ta.select();
+      try { document.execCommand("copy"); done(); } catch (e) { setStatus("复制失败，请长按图片手动复制链接。", true); }
+      ta.remove();
+    }
+  };
+  document.getElementById("clearBtn").onclick = function () {
+    if (!confirm("确定清空生成记录吗？")) return;
+    saveHistory([]);
+    renderGallery();
+  };
+  renderGallery();
+})();
+</script>
+</body>
+</html>
