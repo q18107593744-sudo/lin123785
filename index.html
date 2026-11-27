@@ -123,10 +123,10 @@
       </div>
       <label class="checkline"><input type="checkbox" id="colorize"> 黑白照片上色（给黑白老照片加上自然色彩）</label>
       <div class="notice" id="keyNotice">
-        🔑 修复功能需要一个免费的 Pollinations API Key（免费注册，修复一张几乎不花额度）。<a href="https://enter.pollinations.ai/keys" target="_blank" rel="noopener">点这里免费注册拿 Key →</a><br>
+        🔑 修复功能需要一个免费的 Pollinations Secret Key（sk_ 开头，免费注册，修复一张几乎不花额度）。注意：公开的 pk_ Key 只能做应用标识、不能直接生成，用了会报 401，请创建 secret key。<a href="https://enter.pollinations.ai/keys" target="_blank" rel="noopener">点这里免费注册拿 Key →</a><br>
         注册后把 Key 粘贴到下面，Key 只存在你自己的浏览器里，不会上传到本站。
         <div class="keyrow">
-          <input type="password" id="apiKeyInput" placeholder="粘贴你的 Pollinations API Key（pk_ 开头）">
+          <input type="password" id="apiKeyInput" placeholder="粘贴你的 Pollinations Secret Key（sk_ 开头）">
           <button class="btn primary" id="saveKeyBtn">保存 Key</button>
         </div>
       </div>
@@ -199,8 +199,10 @@
 </footer>
 <script>
 (function () {
-  // 站长可把绑定本站域名的 Pollinations 公开 Key 填在这里（pk_ 开头），
-  // 访客就不用自己填 Key 也能用修复。留空则访客用自己的 Key。
+  // 注意：公开的 pk_ Key 只能做应用标识、不能直接用来生成（实测 401），
+  // 绝不能把 secret key（sk_）嵌进公开前端代码（会被人拿走刷额度）。
+  // 想让访客免填 Key 就用修复，须走服务端代理（例如免费 Cloudflare Worker）
+  // 拿 sk_ 去调接口；本站目前留空，访客用自己浏览器的 Key。
   var SITE_API_KEY = "";
 
   var STYLES = [
