@@ -3,8 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>免费AI生图 - 输入文字，免费生成图片</title>
-<meta name="description" content="免费AI生图工具：输入一段文字描述，免费生成图片，无需注册，无需付费。">
+<title>免费AI生图 - 生图 · 修复照片 · 人物四视图</title>
+<meta name="description" content="免费AI生图工具：输入文字生成图片，修复老照片，一键生成人物四视图。无需注册，无需付费。">
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; }
   body { font-family: -apple-system, "PingFang SC", "Microsoft YaHei", sans-serif; background: #f6f7fb; color: #1f2430; line-height: 1.6; }
@@ -15,13 +15,18 @@
   .badges span { background: rgba(255,255,255,.18); border: 1px solid rgba(255,255,255,.35); border-radius: 999px; padding: 3px 12px; font-size: 12px; }
   main { max-width: 880px; margin: -28px auto 0; padding: 0 16px 48px; }
   .card { background: #fff; border-radius: 16px; box-shadow: 0 8px 30px rgba(31,36,48,.08); padding: 22px; margin-bottom: 20px; }
+  .tabs { display: flex; gap: 8px; margin-bottom: 16px; flex-wrap: wrap; }
+  .tab { flex: 1; min-width: 120px; border: 1.5px solid #dfe3ee; background: #fff; border-radius: 12px; padding: 11px 8px; font-size: 15px; font-weight: 600; color: #4a5162; cursor: pointer; text-align: center; }
+  .tab.active { border-color: #7c6cf6; background: #efecff; color: #5b4de0; }
+  .panel { display: none; }
+  .panel.active { display: block; }
   label { display: block; font-weight: 600; margin-bottom: 6px; font-size: 14px; }
   textarea { width: 100%; min-height: 96px; border: 1.5px solid #dfe3ee; border-radius: 12px; padding: 12px 14px; font-size: 15px; resize: vertical; outline: none; font-family: inherit; }
   textarea:focus { border-color: #7c6cf6; box-shadow: 0 0 0 3px rgba(124,108,246,.15); }
   .row { display: flex; gap: 12px; flex-wrap: wrap; margin-top: 14px; }
   .field { flex: 1; min-width: 140px; }
-  select, input[type=text] { width: 100%; border: 1.5px solid #dfe3ee; border-radius: 10px; padding: 9px 11px; font-size: 14px; outline: none; font-family: inherit; background: #fff; }
-  select:focus, input[type=text]:focus { border-color: #7c6cf6; }
+  select, input[type=text], input[type=password] { width: 100%; border: 1.5px solid #dfe3ee; border-radius: 10px; padding: 9px 11px; font-size: 14px; outline: none; font-family: inherit; background: #fff; }
+  select:focus, input[type=text]:focus, input[type=password]:focus { border-color: #7c6cf6; }
   .chips { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 8px; }
   .chip { border: 1.5px solid #dfe3ee; background: #fff; border-radius: 999px; padding: 5px 13px; font-size: 13px; cursor: pointer; }
   .chip.active { border-color: #7c6cf6; background: #efecff; color: #5b4de0; font-weight: 600; }
@@ -40,6 +45,18 @@
   .gallery figcaption { position: absolute; left: 0; right: 0; bottom: 0; background: linear-gradient(transparent, rgba(0,0,0,.65)); color: #fff; font-size: 11px; padding: 18px 8px 6px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .empty { color: #8a93a6; font-size: 14px; text-align: center; padding: 18px 0 8px; }
   .hint { font-size: 13px; color: #8a93a6; margin-top: 10px; text-align: center; }
+  .dropzone { border: 2px dashed #c9cfe0; border-radius: 14px; padding: 26px 16px; text-align: center; color: #5b6478; cursor: pointer; font-size: 14px; }
+  .dropzone.over { border-color: #7c6cf6; background: #f6f3ff; }
+  .dropzone img { max-width: 100%; max-height: 320px; border-radius: 10px; margin-top: 10px; }
+  .compare { display: flex; gap: 12px; flex-wrap: wrap; justify-content: center; margin-top: 8px; }
+  .compare figure { flex: 1; min-width: 200px; }
+  .compare figcaption { font-size: 13px; color: #5b6478; margin-top: 6px; }
+  .notice { background: #fff8e6; border: 1px solid #f0d48a; border-radius: 12px; padding: 12px 14px; font-size: 13px; color: #6b5518; margin-top: 14px; }
+  .notice a { color: #7c6cf6; font-weight: 600; }
+  .keyrow { display: flex; gap: 8px; margin-top: 10px; }
+  .keyrow input { flex: 1; }
+  .checkline { margin-top: 12px; font-size: 14px; color: #4a5162; }
+  .checkline input { margin-right: 6px; }
   footer { text-align: center; color: #8a93a6; font-size: 12px; padding: 0 16px 32px; }
   footer a { color: #7c6cf6; }
   @media (max-width: 560px) { header h1 { font-size: 24px; } }
@@ -48,37 +65,107 @@
 <body>
 <header>
   <h1>🎨 免费AI生图</h1>
-  <p>输入一段文字描述，免费生成图片。不用注册，不用付费。</p>
-  <div class="badges"><span>完全免费</span><span>无需注册</span><span>中文提示词也行</span><span>图片可下载</span></div>
+  <p>输入文字生图，上传老照片修复，一键生成人物四视图。不用注册，不用付费。</p>
+  <div class="badges"><span>完全免费</span><span>无需注册</span><span>中文提示词也行</span><span>照片修复</span><span>人物四视图</span><span>图片可下载</span></div>
 </header>
 <main>
   <section class="card">
-    <label for="prompt">图片描述</label>
-    <textarea id="prompt" placeholder="例如：一只橘猫坐在洒满阳光的窗台上，旁边有一盆绿植，写实摄影风格"></textarea>
-    <div class="chips" id="styleChips"></div>
-    <div class="row">
-      <div class="field">
-        <label for="size">尺寸</label>
-        <select id="size">
-          <option value="768x768">正方形 768 × 768</option>
-          <option value="512x512">正方形 512 × 512</option>
-          <option value="768x512">横图 768 × 512</option>
-          <option value="512x768">竖图 512 × 768</option>
-          <option value="1024x576">宽屏 1024 × 576</option>
-        </select>
-      </div>
-      <div class="field">
-        <label for="seed">随机种子（留空=随机）</label>
-        <input type="text" id="seed" placeholder="例如 42，相同提示词+种子=同一张图">
-      </div>
+    <div class="tabs">
+      <button class="tab active" data-tab="gen">🖼 文生图</button>
+      <button class="tab" data-tab="restore">🧹 修复照片</button>
+      <button class="tab" data-tab="sheet">🧍 人物四视图</button>
     </div>
-    <button class="gen-btn" id="genBtn">✨ 免费生成图片</button>
+
+    <!-- 文生图 -->
+    <div class="panel active" id="panel-gen">
+      <label for="prompt">图片描述</label>
+      <textarea id="prompt" placeholder="例如：一只橘猫坐在洒满阳光的窗台上，旁边有一盆绿植，写实摄影风格"></textarea>
+      <div class="chips" id="styleChips"></div>
+      <div class="row">
+        <div class="field">
+          <label for="size">尺寸</label>
+          <select id="size">
+            <option value="768x768">正方形 768 × 768</option>
+            <option value="512x512">正方形 512 × 512</option>
+            <option value="768x512">横图 768 × 512</option>
+            <option value="512x768">竖图 512 × 768</option>
+            <option value="1024x576">宽屏 1024 × 576</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="seed">随机种子（留空=随机）</label>
+          <input type="text" id="seed" placeholder="例如 42，相同提示词+种子=同一张图">
+        </div>
+      </div>
+      <button class="gen-btn" id="genBtn">✨ 免费生成图片</button>
+      <div class="hint">免费接口每 45 秒限生成 1 张（按 IP 计），高峰期可能需要排队等待，稍等片刻即可。</div>
+    </div>
+
+    <!-- 修复照片 -->
+    <div class="panel" id="panel-restore">
+      <label>上传要修复的照片</label>
+      <div class="dropzone" id="dropzone">📷 点击选择照片，或把照片拖到这里<br><span style="font-size:12px">支持 JPG / PNG，图片只传给 AI 接口做修复，不会保存在本站</span>
+        <div id="uploadPreview"></div>
+      </div>
+      <input type="file" id="fileInput" accept="image/*" style="display:none">
+      <div class="row">
+        <div class="field">
+          <label for="restoreLevel">修复程度</label>
+          <select id="restoreLevel">
+            <option value="light">轻度清理：去划痕、去污点、提亮提锐</option>
+            <option value="deep">深度修复：破损、折痕、褪色、霉点一起修</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="restoreExtra">补充要求（可选）</label>
+          <input type="text" id="restoreExtra" placeholder="例如：保留原样，不要换脸">
+        </div>
+      </div>
+      <label class="checkline"><input type="checkbox" id="colorize"> 黑白照片上色（给黑白老照片加上自然色彩）</label>
+      <div class="notice" id="keyNotice">
+        🔑 修复功能需要一个免费的 Pollinations API Key（免费注册，修复一张几乎不花额度）。<a href="https://enter.pollinations.ai/keys" target="_blank" rel="noopener">点这里免费注册拿 Key →</a><br>
+        注册后把 Key 粘贴到下面，Key 只存在你自己的浏览器里，不会上传到本站。
+        <div class="keyrow">
+          <input type="password" id="apiKeyInput" placeholder="粘贴你的 Pollinations API Key（pk_ 开头）">
+          <button class="btn primary" id="saveKeyBtn">保存 Key</button>
+        </div>
+      </div>
+      <div class="notice" id="keySaved" style="display:none;background:#eef7ee;border-color:#a8d5a8;color:#2e6b2e">
+        ✅ 已设置 API Key（只存在你的浏览器里）。<button class="btn" id="clearKeyBtn" style="margin-left:8px">更换 / 清除</button>
+      </div>
+      <button class="gen-btn" id="restoreBtn">🧹 开始修复照片</button>
+      <div class="hint">修复由 AI 图像编辑模型完成，通常 30 秒到 1 分钟出图。人物、姿势和构图会保持原样，只修损伤和画质。</div>
+    </div>
+
+    <!-- 人物四视图 -->
+    <div class="panel" id="panel-sheet">
+      <label for="charDesc">角色描述</label>
+      <textarea id="charDesc" placeholder="例如：20 岁左右的中国女孩，黑色长直发，齐刘海，白色衬衫配黑色高腰长裤，白色运动鞋，温柔微笑"></textarea>
+      <div class="chips" id="sheetStyleChips"></div>
+      <div class="row">
+        <div class="field">
+          <label for="sheetSize">尺寸</label>
+          <select id="sheetSize">
+            <option value="1024x1024">正方形 1024 × 1024</option>
+            <option value="768x768">正方形 768 × 768</option>
+            <option value="512x512">正方形 512 × 512</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="sheetSeed">随机种子（留空=随机）</label>
+          <input type="text" id="sheetSeed" placeholder="同一描述+种子=同一套四视图">
+        </div>
+      </div>
+      <label class="checkline"><input type="checkbox" id="sheetLabels"> 给每个视图加文字标注（FRONT / SIDE / BACK / 3-4）</label>
+      <button class="gen-btn" id="sheetBtn">🧍 生成人物四视图</button>
+      <div class="hint">一次生成一张 2×2 四视图设计图：正面、侧面、背面、四分之三侧面，四张是同一个人、同一套衣服。免费接口每 45 秒限 1 张。</div>
+    </div>
+
     <div class="status" id="status"></div>
-    <div class="hint">免费接口每 45 秒限生成 1 张（按 IP 计），高峰期可能需要排队等待，稍等片刻即可。</div>
   </section>
 
   <section class="card result" id="resultCard" style="display:none">
-    <h2 style="font-size:17px;margin-bottom:4px">生成结果</h2>
+    <h2 style="font-size:17px;margin-bottom:4px" id="resultTitle">生成结果</h2>
     <div id="resultWrap"></div>
     <div class="result-actions">
       <button class="btn primary" id="downloadBtn">⬇ 下载图片</button>
@@ -100,16 +187,22 @@
       <li>描述越具体，图越准：主体 + 场景 + 光线 + 风格，例如“黄昏海边，女孩牵着金毛散步，电影感”。</li>
       <li>点风格小标签会自动加到描述后面，也可以自己写英文风格词，效果通常更好。</li>
       <li>喜欢一张图就记下它的种子：同样的提示词 + 同样的种子 = 同一张图。</li>
+      <li>修复照片：上传清晰度尽量高的原图；破损太严重的可以先选“深度修复”再跑一次。</li>
+      <li>人物四视图：角色描述里写清脸型、发型、衣服和鞋子，四张的一致性会更好；想换一套就换个种子。</li>
       <li>图片由免费 AI 接口生成，画质约 768px，适合做头像、壁纸、配图和灵感参考。</li>
     </ul>
   </section>
 </main>
 <footer>
   免费生图由 Pollinations 免费接口提供支持 · 本站不保存你的图片，记录仅存在你自己的浏览器中<br>
-  <a href="https://pollinations.ai" target="_blank" rel="noopener">pollinations.ai</a>
+  修复功能使用 Pollinations 图像编辑模型，需要免费 API Key · <a href="https://pollinations.ai" target="_blank" rel="noopener">pollinations.ai</a>
 </footer>
 <script>
 (function () {
+  // 站长可把绑定本站域名的 Pollinations 公开 Key 填在这里（pk_ 开头），
+  // 访客就不用自己填 Key 也能用修复。留空则访客用自己的 Key。
+  var SITE_API_KEY = "";
+
   var STYLES = [
     { name: "写实摄影", suffix: ", photorealistic, detailed, natural light" },
     { name: "动漫", suffix: ", anime style, vibrant colors" },
@@ -120,45 +213,78 @@
     { name: "扁平插画", suffix: ", flat illustration, minimal, clean" },
     { name: "像素风", suffix: ", pixel art, retro game style" }
   ];
+  var SHEET_STYLES = [
+    { name: "写实", suffix: ", photorealistic, detailed skin texture" },
+    { name: "动漫", suffix: ", anime style, clean lineart" },
+    { name: "3D 渲染", suffix: ", 3D render, Pixar style" },
+    { name: "像素风", suffix: ", pixel art, retro game style" },
+    { name: "水彩", suffix: ", watercolor painting, soft brushstrokes" },
+    { name: "赛博朋克", suffix: ", cyberpunk, neon rim light" }
+  ];
+
   var promptEl = document.getElementById("prompt");
   var sizeEl = document.getElementById("size");
   var seedEl = document.getElementById("seed");
   var genBtn = document.getElementById("genBtn");
   var statusEl = document.getElementById("status");
   var resultCard = document.getElementById("resultCard");
+  var resultTitle = document.getElementById("resultTitle");
   var resultWrap = document.getElementById("resultWrap");
   var galleryEl = document.getElementById("gallery");
   var galleryEmpty = document.getElementById("galleryEmpty");
   var chipsEl = document.getElementById("styleChips");
-  var current = null; // {url, prompt}
-  var retryTimer = null;
+  var current = null; // {url, prompt, kind, origUrl?}
+  var activeTab = "gen";
 
-  var activeStyle = null;
-  STYLES.forEach(function (s) {
-    var b = document.createElement("button");
-    b.type = "button";
-    b.className = "chip";
-    b.textContent = s.name;
-    b.onclick = function () {
-      if (activeStyle === s) {
-        activeStyle = null;
-        b.classList.remove("active");
-        promptEl.value = promptEl.value.replace(s.suffix, "");
-      } else {
-        if (activeStyle) {
-          promptEl.value = promptEl.value.replace(activeStyle.suffix, "");
-          chipsEl.querySelectorAll(".chip").forEach(function (c) { c.classList.remove("active"); });
-        }
-        activeStyle = s;
-        b.classList.add("active");
-        if (promptEl.value.trim()) promptEl.value += s.suffix;
-        else promptEl.value = "一张图片" + s.suffix;
-      }
-      promptEl.focus();
+  // ---- tabs ----
+  document.querySelectorAll(".tab").forEach(function (t) {
+    t.onclick = function () {
+      document.querySelectorAll(".tab").forEach(function (x) { x.classList.remove("active"); });
+      document.querySelectorAll(".panel").forEach(function (x) { x.classList.remove("active"); });
+      t.classList.add("active");
+      document.getElementById("panel-" + t.dataset.tab).classList.add("active");
+      activeTab = t.dataset.tab;
+      setStatus("");
     };
-    chipsEl.appendChild(b);
   });
 
+  // ---- style chips (gen) ----
+  var activeStyle = null;
+  function bindChips(list, container, targetEl, getActive, setActive) {
+    list.forEach(function (s) {
+      var b = document.createElement("button");
+      b.type = "button";
+      b.className = "chip";
+      b.textContent = s.name;
+      b.onclick = function () {
+        var cur = getActive();
+        if (cur === s) {
+          setActive(null);
+          b.classList.remove("active");
+          targetEl.value = targetEl.value.replace(s.suffix, "");
+        } else {
+          if (cur) {
+            targetEl.value = targetEl.value.replace(cur.suffix, "");
+            container.querySelectorAll(".chip").forEach(function (c) { c.classList.remove("active"); });
+          }
+          setActive(s);
+          b.classList.add("active");
+          if (targetEl.value.trim()) targetEl.value += s.suffix;
+          else targetEl.value = s.suffix.replace(/^, /, "");
+        }
+        targetEl.focus();
+      };
+      container.appendChild(b);
+    });
+  }
+  bindChips(STYLES, chipsEl, promptEl, function () { return activeStyle; }, function (v) { activeStyle = v; });
+
+  // ---- style chips (sheet) ----
+  var sheetStyle = null;
+  var charDescEl = document.getElementById("charDesc");
+  bindChips(SHEET_STYLES, document.getElementById("sheetStyleChips"), charDescEl, function () { return sheetStyle; }, function (v) { sheetStyle = v; });
+
+  // ---- history ----
   function loadHistory() {
     try { return JSON.parse(localStorage.getItem("freeimg_history") || "[]"); }
     catch (e) { return []; }
@@ -177,39 +303,59 @@
       img.alt = item.prompt;
       img.loading = "lazy";
       var cap = document.createElement("figcaption");
-      cap.textContent = item.prompt;
+      cap.textContent = (item.kind ? "[" + item.kind + "] " : "") + item.prompt;
       fig.appendChild(img);
       fig.appendChild(cap);
-      fig.onclick = function () { showResult(item.url, item.prompt); window.scrollTo({ top: 0, behavior: "smooth" }); };
+      fig.onclick = function () { showResult(item.url, item.prompt, item.kind, item.origUrl); window.scrollTo({ top: 0, behavior: "smooth" }); };
       galleryEl.appendChild(fig);
     });
   }
-  function addHistory(url, prompt) {
+  function addHistory(url, prompt, kind, origUrl) {
     var list = loadHistory().filter(function (x) { return x.url !== url; });
-    list.unshift({ url: url, prompt: prompt, time: Date.now() });
+    list.unshift({ url: url, prompt: prompt, kind: kind || "", origUrl: origUrl || "", time: Date.now() });
     saveHistory(list);
     renderGallery();
-  }
-  function buildUrl(prompt, seed) {
-    var parts = sizeEl.value.split("x");
-    var q = "?width=" + parts[0] + "&height=" + parts[1] + "&seed=" + seed + "&model=flux&nologo=true";
-    return "https://image.pollinations.ai/prompt/" + encodeURIComponent(prompt) + q;
   }
   function setStatus(msg, isError) {
     statusEl.textContent = msg;
     statusEl.className = "status" + (isError ? " error" : "");
   }
-  function showResult(url, prompt) {
-    current = { url: url, prompt: prompt };
+  function showResult(url, prompt, kind, origUrl) {
+    current = { url: url, prompt: prompt, kind: kind || "", origUrl: origUrl || "" };
     resultCard.style.display = "block";
+    resultTitle.textContent = kind === "修复" ? "修复结果（左：原图，右：修复后）" : (kind === "四视图" ? "人物四视图" : "生成结果");
     resultWrap.innerHTML = "";
-    var img = document.createElement("img");
-    img.src = url;
-    img.alt = prompt;
-    resultWrap.appendChild(img);
+    if (kind === "修复" && origUrl) {
+      var comp = document.createElement("div");
+      comp.className = "compare";
+      [["原图", origUrl], ["修复后", url]].forEach(function (pair) {
+        var f = document.createElement("figure");
+        var im = document.createElement("img");
+        im.src = pair[1];
+        im.alt = pair[0];
+        var c = document.createElement("figcaption");
+        c.textContent = pair[0];
+        f.appendChild(im);
+        f.appendChild(c);
+        comp.appendChild(f);
+      });
+      resultWrap.appendChild(comp);
+    } else {
+      var img = document.createElement("img");
+      img.src = url;
+      img.alt = prompt;
+      resultWrap.appendChild(img);
+    }
   }
   function waitSeconds(n) {
     return new Promise(function (res) { setTimeout(res, n * 1000); });
+  }
+
+  // ---- 文生图 ----
+  function buildUrl(prompt, seed) {
+    var parts = sizeEl.value.split("x");
+    var q = "?width=" + parts[0] + "&height=" + parts[1] + "&seed=" + seed + "&model=flux&nologo=true";
+    return "https://image.pollinations.ai/prompt/" + encodeURIComponent(prompt) + q;
   }
   async function generate(prompt, seed) {
     genBtn.disabled = true;
@@ -221,8 +367,8 @@
       try {
         var res = await fetch(url, { method: "GET" });
         if (res.ok) {
-          showResult(url, prompt);
-          addHistory(url, prompt);
+          showResult(url, prompt, "生图");
+          addHistory(url, prompt, "生图");
           setStatus("生成成功！点击图片下方按钮可以下载。");
           genBtn.disabled = false;
           return;
@@ -246,15 +392,219 @@
   genBtn.onclick = function () {
     var prompt = promptEl.value.trim();
     if (!prompt) { setStatus("先写一句图片描述吧。", true); promptEl.focus(); return; }
-    if (retryTimer) { clearTimeout(retryTimer); retryTimer = null; }
     var seed = seedEl.value.trim() || String(Math.floor(Math.random() * 1000000));
     generate(prompt, seed);
   };
+
+  // ---- 人物四视图 ----
+  var sheetBtn = document.getElementById("sheetBtn");
+  function buildSheetPrompt(desc) {
+    var labels = document.getElementById("sheetLabels").checked
+      ? ", each view labeled in small clean text: FRONT, SIDE, BACK, 3-4"
+      : "";
+    return "Character reference sheet, four views of the SAME character: front view, left side view, back view, three-quarter view, arranged in a clean 2x2 grid, identical face, hairstyle, outfit, colors and proportions in all four views, consistent character design, full body, plain light background, " + desc + labels;
+  }
+  async function generateSheet(desc, seed) {
+    sheetBtn.disabled = true;
+    var prompt = buildSheetPrompt(desc);
+    var parts = document.getElementById("sheetSize").value.split("x");
+    var url = "https://image.pollinations.ai/prompt/" + encodeURIComponent(prompt) + "?width=" + parts[0] + "&height=" + parts[1] + "&seed=" + seed + "&model=flux&nologo=true";
+    var attempt = 0;
+    while (attempt < 6) {
+      attempt++;
+      setStatus(attempt > 1 ? ("服务繁忙，第 " + attempt + " 次重试中…") : "正在生成四视图，请稍等…");
+      try {
+        var res = await fetch(url, { method: "GET" });
+        if (res.ok) {
+          showResult(url, desc, "四视图");
+          addHistory(url, desc, "四视图");
+          setStatus("四视图生成成功！");
+          sheetBtn.disabled = false;
+          return;
+        }
+        var retryAfter = parseInt(res.headers.get("Retry-After") || "45", 10) || 45;
+        if (res.status === 402 || res.status === 429 || res.status === 503) {
+          var wait = Math.min(Math.max(retryAfter, 10), 60);
+          setStatus("免费接口限流/繁忙，" + wait + " 秒后自动重试（第 " + attempt + " 次）…", false);
+          await waitSeconds(wait);
+          continue;
+        }
+        throw new Error("HTTP " + res.status);
+      } catch (e) {
+        setStatus("网络有点问题，10 秒后自动重试（第 " + attempt + " 次）…", true);
+        await waitSeconds(10);
+      }
+    }
+    setStatus("接口暂时太忙了，请过一会儿再点一次生成。", true);
+    sheetBtn.disabled = false;
+  }
+  sheetBtn.onclick = function () {
+    var desc = charDescEl.value.trim();
+    if (!desc) { setStatus("先写一句角色描述吧，比如年龄、发型、衣服。", true); charDescEl.focus(); return; }
+    var seed = document.getElementById("sheetSeed").value.trim() || String(Math.floor(Math.random() * 1000000));
+    generateSheet(desc, seed);
+  };
+
+  // ---- 修复照片 ----
+  var dropzone = document.getElementById("dropzone");
+  var fileInput = document.getElementById("fileInput");
+  var uploadPreview = document.getElementById("uploadPreview");
+  var restoreBtn = document.getElementById("restoreBtn");
+  var uploadedFile = null; // File
+  var uploadedDataUrl = "";
+
+  function getApiKey() {
+    try { return localStorage.getItem("freeimg_api_key") || SITE_API_KEY || ""; }
+    catch (e) { return SITE_API_KEY || ""; }
+  }
+  function refreshKeyUI() {
+    var has = !!getApiKey();
+    document.getElementById("keyNotice").style.display = has ? "none" : "block";
+    document.getElementById("keySaved").style.display = has ? "block" : "none";
+  }
+  document.getElementById("saveKeyBtn").onclick = function () {
+    var k = document.getElementById("apiKeyInput").value.trim();
+    if (!k) { setStatus("请先粘贴 API Key。", true); return; }
+    try { localStorage.setItem("freeimg_api_key", k); } catch (e) {}
+    document.getElementById("apiKeyInput").value = "";
+    refreshKeyUI();
+    setStatus("Key 已保存到你的浏览器，可以开始修复了。");
+  };
+  document.getElementById("clearKeyBtn").onclick = function () {
+    try { localStorage.removeItem("freeimg_api_key"); } catch (e) {}
+    refreshKeyUI();
+    setStatus("已清除保存的 Key。");
+  };
+  refreshKeyUI();
+
+  function handleFile(file) {
+    if (!file || file.type.indexOf("image/") !== 0) { setStatus("请选择一张图片文件。", true); return; }
+    uploadedFile = file;
+    var reader = new FileReader();
+    reader.onload = function (e) {
+      uploadedDataUrl = e.target.result;
+      uploadPreview.innerHTML = "";
+      var img = document.createElement("img");
+      img.src = uploadedDataUrl;
+      img.alt = "待修复的照片";
+      uploadPreview.appendChild(img);
+      setStatus("照片已上传，点“开始修复照片”即可。");
+    };
+    reader.readAsDataURL(file);
+  }
+  dropzone.onclick = function () { fileInput.click(); };
+  fileInput.onchange = function () { handleFile(fileInput.files[0]); };
+  dropzone.ondragover = function (e) { e.preventDefault(); dropzone.classList.add("over"); };
+  dropzone.ondragleave = function () { dropzone.classList.remove("over"); };
+  dropzone.ondrop = function (e) {
+    e.preventDefault();
+    dropzone.classList.remove("over");
+    handleFile(e.dataTransfer.files[0]);
+  };
+
+  function downscale(file) {
+    return new Promise(function (resolve) {
+      var img = new Image();
+      var url = URL.createObjectURL(file);
+      img.onload = function () {
+        var maxSide = 1024;
+        var w = img.naturalWidth, h = img.naturalHeight;
+        if (Math.max(w, h) > maxSide) {
+          var s = maxSide / Math.max(w, h);
+          w = Math.round(w * s); h = Math.round(h * s);
+        }
+        var c = document.createElement("canvas");
+        c.width = w; c.height = h;
+        c.getContext("2d").drawImage(img, 0, 0, w, h);
+        URL.revokeObjectURL(url);
+        c.toBlob(function (b) { resolve(b); }, "image/jpeg", 0.88);
+      };
+      img.onerror = function () { URL.revokeObjectURL(url); resolve(file); };
+      img.src = url;
+    });
+  }
+  function buildRestorePrompt() {
+    var level = document.getElementById("restoreLevel").value;
+    var extra = document.getElementById("restoreExtra").value.trim();
+    var colorize = document.getElementById("colorize").checked;
+    var p = level === "deep"
+      ? "Restore this old damaged photo thoroughly: remove scratches, creases, tears, dust, stains, mold spots and fading, repair damaged areas, sharpen details, correct color and exposure"
+      : "Clean up this photo gently: remove scratches, dust and small stains, sharpen details, correct color and exposure slightly";
+    if (colorize) p += ", colorize this black and white photo with natural realistic colors";
+    p += ". Keep the people, faces, poses and composition exactly the same, do not change anyone's identity, photorealistic, natural result";
+    if (extra) p += ". Additional instruction: " + extra;
+    return p;
+  }
+  restoreBtn.onclick = async function () {
+    if (!uploadedFile) { setStatus("请先上传一张要修复的照片。", true); return; }
+    var key = getApiKey();
+    if (!key) { setStatus("修复需要 API Key，请先在上方注册并粘贴 Key（免费）。", true); return; }
+    restoreBtn.disabled = true;
+    setStatus("正在修复照片，通常 30 秒到 1 分钟，请稍等…");
+    try {
+      var blob = await downscale(uploadedFile);
+      var form = new FormData();
+      form.append("image", blob, "photo.jpg");
+      form.append("prompt", buildRestorePrompt());
+      form.append("model", "microsoft/mai-image-2.7-flash");
+      form.append("size", "1024x1024");
+      var res = await fetch("https://gen.pollinations.ai/v1/images/edits", {
+        method: "POST",
+        headers: { "Authorization": "Bearer " + key },
+        body: form
+      });
+      if (res.status === 401) {
+        setStatus("Key 无效或已过期，请检查后重新粘贴（注册地址在上方）。", true);
+        restoreBtn.disabled = false;
+        return;
+      }
+      if (res.status === 402 || res.status === 429) {
+        setStatus("接口限流或额度不足，请稍等一会儿再试。", true);
+        restoreBtn.disabled = false;
+        return;
+      }
+      if (!res.ok) {
+        var errText = "";
+        try { errText = (await res.json()).error?.message || ""; } catch (e) {}
+        setStatus("修复失败（HTTP " + res.status + "）" + (errText ? "：" + errText : "") + "，请稍后再试。", true);
+        restoreBtn.disabled = false;
+        return;
+      }
+      var ct = (res.headers.get("content-type") || "").toLowerCase();
+      var outUrl = "";
+      if (ct.indexOf("application/json") !== -1) {
+        var data = await res.json();
+        var item = data && data.data && data.data[0];
+        if (item && item.url) outUrl = item.url;
+        else if (item && item.b64_json) outUrl = "data:image/png;base64," + item.b64_json;
+      } else {
+        var outBlob = await res.blob();
+        outUrl = URL.createObjectURL(outBlob);
+      }
+      if (!outUrl) throw new Error("no image returned");
+      showResult(outUrl, "修复照片", "修复", uploadedDataUrl);
+      addHistory(outUrl, "修复照片", "修复", uploadedDataUrl);
+      setStatus("修复完成！左原图、右修复后，可以下载对比。");
+    } catch (e) {
+      setStatus("修复失败：网络问题或接口暂时不可用，请稍后再试。", true);
+    }
+    restoreBtn.disabled = false;
+  };
+
+  // ---- result actions ----
   document.getElementById("againBtn").onclick = function () {
     if (!current) return;
-    var seed = String(Math.floor(Math.random() * 1000000));
-    seedEl.value = seed;
-    generate(current.prompt, seed);
+    if (current.kind === "四视图") {
+      var seed = String(Math.floor(Math.random() * 1000000));
+      document.getElementById("sheetSeed").value = seed;
+      generateSheet(current.prompt, seed);
+    } else if (current.kind === "修复") {
+      restoreBtn.click();
+    } else {
+      var seed = String(Math.floor(Math.random() * 1000000));
+      seedEl.value = seed;
+      generate(current.prompt, seed);
+    }
   };
   document.getElementById("downloadBtn").onclick = function () {
     if (!current) return;
@@ -268,6 +618,7 @@
   };
   document.getElementById("copyBtn").onclick = function () {
     if (!current) return;
+    if (current.url.indexOf("data:") === 0) { setStatus("这张是修复后直接生成的图，请用下载按钮保存。", true); return; }
     var done = function () { setStatus("图片链接已复制。"); };
     if (navigator.clipboard && navigator.clipboard.writeText) {
       navigator.clipboard.writeText(current.url).then(done, function () { setStatus("复制失败，请长按图片手动复制链接。", true); });
